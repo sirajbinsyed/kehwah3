@@ -1,62 +1,79 @@
 "use client"
 
-import { useEffect } from 'react'
-import Link from 'next/link'
-import Image from 'next/image'
-import { useSearchParams } from 'next/navigation'
-import { Minus, Plus, Trash2, CreditCard, Truck } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
-import { Label } from '@/components/ui/label'
-import { Header } from '@/components/header'
-import { Footer } from '@/components/footer'
-import { useCart } from '@/components/cart-provider'
+import { Suspense, useEffect } from "react"
+import Link from "next/link"
+import Image from "next/image"
+import { useSearchParams } from "next/navigation"
+import { Minus, Plus, Trash2, CreditCard, Truck } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
+import { Label } from "@/components/ui/label"
+import { Header } from "@/components/header"
+import { Footer } from "@/components/footer"
+import { useCart } from "@/components/cart-provider"
 
 const productImages = [
   "/images/product-1.png",
   "/images/product-2.jpg",
   "/images/product-3.jpg",
   "/images/product-4.jpg",
-];
+]
 
 const productName =
   "Kesar Kehwah – Organic Herbal Tea (Light & Refreshing) – Bestseller"
 
-export default function CartContent() {
+export default function CartPage() {
+  return (
+    <Suspense fallback={<div className="p-10 text-center">Loading cart...</div>}>
+      <CartContent />
+    </Suspense>
+  )
+}
+
+function CartContent() {
 
   const searchParams = useSearchParams()
-  const { state, addItem, updateQty, removeItem, getTotalCount, getTotalPrice } = useCart()
 
-  const variant = searchParams.get('variant')
-  const qtyStr = searchParams.get('qty')
-  const priceStr = searchParams.get('price')
+  const {
+    state,
+    addItem,
+    updateQty,
+    removeItem,
+    getTotalCount,
+    getTotalPrice
+  } = useCart()
+
+  const variant = searchParams.get("variant")
+  const qtyStr = searchParams.get("qty")
+  const priceStr = searchParams.get("price")
 
   useEffect(() => {
-    if (variant && qtyStr && priceStr) {
 
-      const quantity = parseInt(qtyStr)
-      const price = parseFloat(priceStr)
+    if (!variant || !qtyStr || !priceStr) return
 
-      if (!isNaN(quantity) && !isNaN(price) && quantity > 0) {
+    const quantity = parseInt(qtyStr)
+    const price = parseFloat(priceStr)
 
-        if (!state.items.some(item => item.variant === variant && item.price === price)) {
+    if (isNaN(quantity) || isNaN(price) || quantity <= 0) return
 
-          addItem({
-            variant,
-            price,
-            quantity,
-            image: '/images/product-1.png'
-          })
+    const exists = state.items.some(
+      (item) => item.variant === variant && item.price === price
+    )
 
-        }
-      }
+    if (!exists) {
+      addItem({
+        variant,
+        price,
+        quantity,
+        image: "/images/product-1.png",
+      })
     }
+
   }, [variant, qtyStr, priceStr])
 
   if (getTotalCount() === 0) {
     return (
       <div className="min-h-screen bg-white">
-
         <Header />
 
         <div className="py-20 text-center">
@@ -73,7 +90,6 @@ export default function CartContent() {
         </div>
 
         <Footer />
-
       </div>
     )
   }
@@ -89,8 +105,6 @@ export default function CartContent() {
 
         <div className="flex flex-col lg:flex-row gap-12">
 
-          {/* Cart Items */}
-
           <div className="lg:w-2/3">
 
             <h1 className="font-serif text-3xl font-bold text-[#1B3B36] mb-8">
@@ -101,10 +115,7 @@ export default function CartContent() {
 
               {state.items.map((item) => (
 
-                <div
-                  key={item.id}
-                  className="flex gap-6 p-6 border border-gray-200 rounded-xl"
-                >
+                <div key={item.id} className="flex gap-6 p-6 border rounded-xl">
 
                   <div className="w-24 h-24 rounded-lg overflow-hidden bg-gray-100">
 
@@ -118,9 +129,9 @@ export default function CartContent() {
 
                   </div>
 
-                  <div className="flex-1 min-w-0">
+                  <div className="flex-1">
 
-                    <h3 className="font-serif text-xl font-bold text-[#1B3B36] mb-1 truncate">
+                    <h3 className="font-serif text-xl font-bold text-[#1B3B36] mb-1">
                       {productName}
                     </h3>
 
@@ -130,12 +141,11 @@ export default function CartContent() {
 
                     <div className="flex items-center gap-4">
 
-                      <div className="flex items-center border border-gray-200 rounded-md">
+                      <div className="flex items-center border rounded-md">
 
                         <Button
                           variant="ghost"
                           size="sm"
-                          className="h-9 w-10 p-0"
                           onClick={() =>
                             updateQty(item.id, Math.max(1, item.quantity - 1))
                           }
@@ -143,14 +153,13 @@ export default function CartContent() {
                           <Minus className="w-4 h-4" />
                         </Button>
 
-                        <span className="w-12 text-center text-sm font-medium">
+                        <span className="w-12 text-center">
                           {item.quantity}
                         </span>
 
                         <Button
                           variant="ghost"
                           size="sm"
-                          className="h-9 w-10 p-0"
                           onClick={() =>
                             updateQty(item.id, item.quantity + 1)
                           }
@@ -167,7 +176,7 @@ export default function CartContent() {
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="text-red-500 hover:text-red-700 p-0 h-auto w-auto"
+                        className="text-red-500"
                         onClick={() => removeItem(item.id)}
                       >
                         <Trash2 className="w-4 h-4" />
@@ -185,11 +194,9 @@ export default function CartContent() {
 
           </div>
 
-          {/* Checkout Sidebar */}
-
           <div className="lg:w-1/3">
 
-            <div className="p-8 border border-gray-200 rounded-xl sticky top-8">
+            <div className="p-8 border rounded-xl sticky top-8">
 
               <div className="text-right mb-8">
 
@@ -203,58 +210,31 @@ export default function CartContent() {
 
               </div>
 
-              <div className="space-y-4 mb-8">
+              <RadioGroup value="cod" className="space-y-2 mb-8">
 
-                <p className="font-medium text-[#1B3B36]">
-                  Payment Method
-                </p>
+                <div className="flex items-center p-3 border rounded-lg">
+                  <RadioGroupItem value="cod" id="cod" className="mr-3" />
+                  <Label htmlFor="cod" className="flex items-center gap-2">
+                    <Truck className="w-5 h-5 text-green-600" />
+                    Cash on Delivery
+                  </Label>
+                </div>
 
-                <RadioGroup value="cod" className="space-y-2">
+                <div className="flex items-center p-3 border rounded-lg">
+                  <RadioGroupItem value="card" id="card" className="mr-3" />
+                  <Label htmlFor="card" className="flex items-center gap-2">
+                    <CreditCard className="w-5 h-5 text-blue-600" />
+                    Cards / UPI
+                  </Label>
+                </div>
 
-                  <div className="flex items-center p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50">
+              </RadioGroup>
 
-                    <RadioGroupItem value="cod" id="cod" className="mr-3" />
-
-                    <Label htmlFor="cod" className="flex items-center gap-2 cursor-pointer flex-1">
-
-                      <Truck className="w-5 h-5 text-green-600" />
-                      Cash on Delivery
-
-                    </Label>
-
-                  </div>
-
-                  <div className="flex items-center p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50">
-
-                    <RadioGroupItem value="card" id="card" className="mr-3" />
-
-                    <Label htmlFor="card" className="flex items-start gap-2 cursor-pointer flex-1">
-
-                      <CreditCard className="w-5 h-5 text-blue-600 mt-0.5" />
-
-                      <div>
-
-                        <div>Cards / UPI</div>
-
-                        <div className="text-xs text-gray-500">
-                          Visa, Mastercard, RuPay, UPI
-                        </div>
-
-                      </div>
-
-                    </Label>
-
-                  </div>
-
-                </RadioGroup>
-
-              </div>
-
-              <Button className="w-full bg-[#1B3B36] hover:bg-[#152e2a] text-white py-4 text-lg font-bold rounded-xl uppercase tracking-wider mb-4">
+              <Button className="w-full bg-[#1B3B36] text-white py-4 mb-4">
                 Proceed to Checkout
               </Button>
 
-              <Button className="w-full bg-[#E87722] hover:bg-[#d46a1e] text-white py-4 text-lg font-bold rounded-xl uppercase tracking-wider">
+              <Button className="w-full bg-[#E87722] text-white py-4">
                 Buy Now - Pay Later
               </Button>
 
