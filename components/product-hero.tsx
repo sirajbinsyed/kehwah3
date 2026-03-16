@@ -1,17 +1,23 @@
 "use client"
 
 import { useState } from "react"
+import { useRouter } from 'next/navigation'
 import Image from "next/image"
-import { Star, Minus, Plus } from "lucide-react"
+import { Star, Minus, Plus, Check, Loader2 } from "lucide-react" // Added Check and Loader2
 import { Button } from "@/components/ui/button"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
+import { useCart } from '@/components/cart-provider'
+import { toast } from '@/components/ui/use-toast'
 import { Label } from "@/components/ui/label"
+import { cn } from "@/lib/utils"
 
 const productImages = [
-  "/images/product-1.png",
-  "/images/product-2.jpg",
-  "/images/product-3.jpg",
-  "/images/product-4.jpg",
+  "/images/products/product-1.png",
+  "/images/products/product-2.png",
+  "/images/products/product-jar.png",
+  "/images/products/product-info.jpg",
+  "/images/products/whats-inside.jpg",
+  "/images/products/how-to-make.jpg",
 ]
 
 const variants = [
@@ -24,12 +30,38 @@ const variants = [
 export function ProductHero() {
   const [selectedImage, setSelectedImage] = useState(0)
   const [quantity, setQuantity] = useState(1)
-  // Initialize with the first variant label
   const [selectedPack, setSelectedPack] = useState(variants[0].label)
   const [purchaseType, setPurchaseType] = useState("one-time")
+  const [isAdding, setIsAdding] = useState(false) // State for animation
 
-  // Find the currently selected variant data
+  const router = useRouter()
+  const { addItem } = useCart()
+
   const currentVariant = variants.find(v => v.label === selectedPack) || variants[0];
+
+  const handleAddToCart = () => {
+    setIsAdding(true)
+    
+    const priceNum = parseFloat(currentVariant.price.replace(/,/g, ''))
+    
+    addItem({
+      variant: selectedPack,
+      price: priceNum,
+      quantity,
+      image: productImages[selectedImage]
+    })
+
+    toast({
+      title: "Success!",
+      description: `${quantity} x ${selectedPack} added to your cart.`,
+      variant: "default",
+    })
+
+    // Revert animation after 2 seconds
+    setTimeout(() => {
+      setIsAdding(false)
+    }, 2000)
+  }
 
   return (
     <section className="bg-white py-6 md:py-10">
@@ -38,13 +70,13 @@ export function ProductHero() {
           
           {/* LEFT COLUMN: Images */}
           <div className="flex flex-col gap-4 w-full">
-            <div className="aspect-square w-full rounded-xl overflow-hidden bg-[#F7F7F7]">
+            <div className="aspect-square w-full rounded-xl overflow-hidden bg-[#F7F7F7] border border-gray-100">
               <Image
                 src={productImages[selectedImage]}
-                alt="Product"
+                alt="Product Image"
                 width={1000}
                 height={1000}
-                className="w-full h-full object-cover"
+                className="w-full h-full object-contain"
                 priority
               />
             </div>
@@ -57,7 +89,7 @@ export function ProductHero() {
                     selectedImage === idx ? "border-[#1B3B36]" : "border-transparent hover:border-gray-200"
                   }`}
                 >
-                  <Image src={img} alt="View" width={100} height={100} className="w-full h-full object-cover" />
+                  <Image src={img} alt={`View ${idx + 1}`} width={100} height={100} className="w-full h-full object-cover" />
                 </button>
               ))}
             </div>
@@ -79,7 +111,7 @@ export function ProductHero() {
               <span className="text-gray-400 text-sm">29 reviews</span>
             </div>
 
-            {/* Dynamic Price Display */}
+            {/* Price Display */}
             <div className="flex items-center gap-3 mt-4">
               <span className="text-gray-400 line-through text-base">₹ {currentVariant.originalPrice}</span>
               <span className="text-2xl font-bold text-[#1B3B36]">₹ {currentVariant.price}</span>
@@ -112,7 +144,7 @@ export function ProductHero() {
               </p>
             </div>
 
-            {/* Quantity Selector */}
+            {/* Quantity */}
             <div className="mt-6">
               <p className="text-gray-700 text-sm mb-2">Quantity</p>
               <div className="flex items-center border border-gray-200 rounded-md w-fit">
@@ -124,10 +156,33 @@ export function ProductHero() {
 
             {/* Action Buttons */}
             <div className="flex flex-col gap-2 mt-6">
-              <Button className="w-full bg-[#1B3B36] hover:bg-[#152e2a] text-white py-6 text-sm font-bold rounded-md uppercase tracking-wider">
-                ADD TO CART
+              <Button 
+                onClick={handleAddToCart}
+                disabled={isAdding}
+                className={cn(
+                  "w-full py-6 text-sm font-bold rounded-md uppercase tracking-wider transition-all duration-300 relative overflow-hidden",
+                  isAdding ? "bg-green-600 hover:bg-green-600" : "bg-[#1B3B36] hover:bg-[#152e2a]"
+                )}
+              >
+                <span className={cn(
+                  "flex items-center justify-center gap-2 transition-all duration-300",
+                  isAdding ? "transform translate-y-0 opacity-100" : "opacity-100"
+                )}>
+                  {isAdding ? (
+                    <>
+                      <Check className="w-4 h-4 animate-in zoom-in duration-300" />
+                      ITEM ADDED TO CART!
+                    </>
+                  ) : (
+                    "ADD TO CART"
+                  )}
+                </span>
               </Button>
-              <Button className="w-full bg-[#E87722] hover:bg-[#d46a1e] text-white py-6 text-sm font-bold rounded-md uppercase tracking-wider">
+
+              <Button 
+                onClick={() => router.push(`/cart?variant=${encodeURIComponent(selectedPack)}&qty=${quantity}&price=${parseFloat(currentVariant.price.replace(/,/g, ''))}&direct=true`)}
+                className="w-full bg-[#E87722] hover:bg-[#d46a1e] text-white py-6 text-sm font-bold rounded-md uppercase tracking-wider"
+              >
                 BUY IT NOW
               </Button>
             </div>
@@ -159,10 +214,9 @@ export function ProductHero() {
               </label>
             </div>
 
-            {/* Footer Text & Features */}
+            {/* Footer Text */}
             <div className="mt-4 space-y-2">
               <p className="text-xs text-gray-400">Auto-renews, skip or cancel anytime.</p>
-              
               <div className="pt-2 flex flex-col gap-1 text-sm text-gray-600">
                 <p>- Free Shipping On All Orders</p>
                 <p>- Express Delivery On Request</p>

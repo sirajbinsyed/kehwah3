@@ -1,11 +1,13 @@
 "use client"
 
 import Link from "next/link"
+import { useCart } from "@/components/cart-provider"
 import Image from "next/image"
 import { Search, ShoppingCart, User } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
 export function Header() {
+  const { getTotalCount } = useCart()
   return (
     <header className="w-full bg-[#fcfbf7]">
       {/* Top announcement bar */}
@@ -46,11 +48,13 @@ export function Header() {
                 <User className="h-5 w-5 md:h-6 md:w-6 stroke-[1.5]" />
               </Button>
 
-              <Button variant="ghost" size="icon" className="text-gray-800 hover:bg-transparent relative w-9 h-9 md:w-10 md:h-10">
-                <ShoppingCart className="h-5 w-5 md:h-6 md:w-6 stroke-[1.5]" />
-                <span className="absolute top-1 right-1 bg-[#c41e1e] text-white text-[9px] font-bold rounded-full h-4 w-4 flex items-center justify-center">
-                  0
-                </span>
+              <Button variant="ghost" size="icon" className="text-gray-800 hover:bg-transparent relative w-9 h-9 md:w-10 md:h-10 cursor-pointer" asChild>
+                <Link href="/cart">
+                  <ShoppingCart className="h-5 w-5 md:h-6 md:w-6 stroke-[1.5]" />
+                  <span className="absolute top-1 right-1 bg-[#c41e1e] text-white text-[9px] font-bold rounded-full h-4 w-4 flex items-center justify-center">
+                    {getTotalCount()}
+                  </span>
+                </Link>
               </Button>
             </div>
 
