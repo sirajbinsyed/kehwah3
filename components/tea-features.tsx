@@ -10,27 +10,43 @@ const badges = [
 
 export function TeaFeatures() {
   return (
-    <section className="bg-[#FAF9F6] py-10 md:py-16">
-      <div className="max-w-[1440px] mx-auto px-4 md:px-12">
-        {/* Section Title */}
-        <h2 className="text-center text-gray-400 tracking-[0.3em] font-light text-xs md:text-sm mb-12 uppercase">
-          THESE TEAS ARE
+    <section className="bg-[#FAF9F6] py-12 md:py-20 border-y border-gray-100">
+      <div className="max-w-[1200px] mx-auto px-6">
+        
+        {/* Section Title - Editorial Style Typography */}
+        <h2 className="text-center text-gray-400 tracking-[0.4em] font-bold text-[10px] md:text-xs mb-10 md:mb-16 uppercase opacity-80">
+          TRUSTED FOR QUALITY & PURITY
         </h2>
 
-        {/* Badges Grid - 5 columns on desktop, 3 columns on mobile */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-8 md:gap-12 items-center justify-items-center">
+        {/* 
+          Flexbox Layout:
+          - justify-center: Ensures the 5th logo sits in the middle on mobile
+          - flex-wrap: Allows logos to wrap to new lines naturally
+        */}
+        <div className="flex flex-wrap justify-center items-center gap-x-8 gap-y-10 md:gap-x-16 lg:gap-x-24">
           {badges.map((badge, idx) => (
-            <div key={idx} className="relative w-24 h-24 md:w-32 md:h-32 transition-transform duration-300 hover:scale-110">
-              <Image
-                src={badge.src}
-                alt={badge.alt}
-                fill
-                className="object-contain"
-                priority
-              />
+            <div 
+              key={idx} 
+              className="group flex items-center justify-center transition-all duration-500"
+            >
+              {/* 
+                Reduced Logo Sizes:
+                - Mobile: w-16 (64px)
+                - Desktop: w-24 (96px)
+              */}
+              <div className="relative w-16 h-16 md:w-24 md:h-24 transition-all duration-500 hover:scale-110">
+                <Image
+                  src={badge.src}
+                  alt={badge.alt}
+                  fill
+                  className="object-contain"
+                  priority
+                />
+              </div>
             </div>
           ))}
         </div>
+
       </div>
     </section>
   )
